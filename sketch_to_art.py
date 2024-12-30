@@ -1,7 +1,7 @@
 from shared import *
 
 router = APIRouter()
-expected_keys_sketch = ["XsGCpFOxHZlCOptSiCNKOgS1sxRMSxy5"]
+expected_keys_sketch = []
 
 
 @router.post("/sketch")
