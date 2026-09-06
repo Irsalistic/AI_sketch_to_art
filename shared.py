@@ -12,13 +12,21 @@ api = webuiapi.WebUIApi()
 
 # create API client with custom host, port
 
-# base_url="mango-sprout-kiw3yn5hq3vil2g7.salad.cloud"
-base_url = "192.168.100.48"
+base_url = os.getenv("WEBUI_HOST", "127.0.0.1")
+webui_port = int(os.getenv("WEBUI_PORT", "7861"))
 
-# api = webuiapi.WebUIApi(host=base_url, port=443, sampler='Euler a', steps=30,use_https=True)
-api = webuiapi.WebUIApi(host=base_url, port=7861, sampler='DPM++ 2M Karras', steps=25,use_https=False)
+api = webuiapi.WebUIApi(
+    host=base_url,
+    port=webui_port,
+    sampler="DPM++ 2M Karras",
+    steps=25,
+    use_https=os.getenv("WEBUI_HTTPS", "false").lower() == "true",
+)
 
-api.set_auth()
+webui_user = os.getenv("WEBUI_USER")
+webui_password = os.getenv("WEBUI_PASSWORD")
+if webui_user and webui_password:
+    api.set_auth(webui_user, webui_password)
 
 SDXL_styles = [
 
