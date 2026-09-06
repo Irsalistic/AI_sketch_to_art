@@ -1,120 +1,71 @@
-# Sketch to Art API
+# Sketch to Art
 
-A FastAPI-based web service that transforms sketches into artistic renderings using Stable Diffusion and ControlNet. This service provides endpoints for converting line art into realistic images with various artistic styles.
+FastAPI service that turns a sketch into a rendered image using **Stable Diffusion WebUI** and **ControlNet**.
 
 ## Features
 
-- Sketch to realistic art conversion using ControlNet
-- Support for multiple artistic styles and models 
-- Built-in image resizing and processing
-- FastAPI-based RESTful API
-- Jinja2 template integration for web interface
+- Sketch-to-art conversion with ControlNet lineart
+- Prompt-driven style
+- Built-in resize before generation
+- Optional simple web UI
 
 ## Prerequisites
 
 - Python 3.8+
-- FastAPI
-- Pillow (PIL)
-- webuiapi
-- Stable Diffusion WebUI with ControlNet extension
+- A running [Stable Diffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) with the ControlNet extension
+- The RealisticVision checkpoint (or change the model name in `sketch_to_art.py`)
 
-## Installation
+## Setup
 
-1. Clone the repository:
 ```bash
-git clone https://github.com/Irsalistic/AI_sketch_to_art/
+git clone https://github.com/Irsalistic/AI_sketch_to_art.git
 cd AI_sketch_to_art
+pip install -r requirements.txt
 ```
 
-2. Install the required dependencies:
+If this folder has no `requirements.txt`, install:
+
 ```bash
-pip install requirements.txt
+pip install fastapi uvicorn pillow webuiapi python-multipart jinja2
 ```
 
-3. Set up the project structure:
-```
-project/
-├── main.py
-├── shared.py
-├── sketch_to_art.py
-├── templates/
-│   └── index.html
-└── static/
+Point the client at your WebUI in `shared.py` (`base_url` and `port`).
+
+## Run
+
+```bash
+uvicorn main:app --reload
 ```
 
-## Configuration
+## API
 
-### API Settings
-The API is configured to connect to a Stable Diffusion WebUI instance. You can modify the connection settings in `shared.py`:
+`POST /sketch` (multipart form)
 
-```python
-base_url = "192.168.0.1"  # Update with your WebUI host
-port = 7861                  # Update with your WebUI port
-```
+| Field | Required | Description |
+|-------|----------|-------------|
+| `key` | yes | API key |
+| `image` | yes | Sketch image |
+| `prompt` | yes | Text description |
 
-### Available Models
-The project uses the RealisticVision model by default. You can modify the model settings in `sketch_to_art.py`:
-
-```python
-desired_model_name = 'realisticVisionV60B1_v51VAE'
-```
-
-## API Endpoints
-
-### Root Endpoint
-- `GET /`: Returns the main web interface
-
-### Sketch Processing
-- `POST /sketch`
-  - Parameters:
-    - `key`: API authentication key (required)
-    - `image`: Image file upload (required)
-    - `prompt`: Text description for image generation (required)
-  - Returns: Generated image in PNG format
-
-## Usage Example
+Returns a PNG.
 
 ```python
 import requests
 
-url = "http://your-server/sketch"
-files = {
-    'image': open('sketch.png', 'rb'),
-    'prompt': (None, 'your prompt here'),
-    'key': (None, 'your-api-key')
-}
-
-response = requests.post(url, files=files)
-with open('generated_image.png', 'wb') as f:
-    f.write(response.content)
+response = requests.post(
+    "http://127.0.0.1:8000/sketch",
+    files={"image": open("sketch.png", "rb")},
+    data={"prompt": "a watercolor house", "key": "your-api-key"},
+)
+open("out.png", "wb").write(response.content)
 ```
 
-## Image Processing Features
+`GET /` serves the web UI when templates are present.
 
-- Automatic image resizing while maintaining aspect ratio
-- Maximum dimension limit: 976px
-- Support for various image formats
-- HDR photo enhancement with detailed prompts
-- ControlNet Lineart integration for sketch processing
+## Layout
 
-## Security
-
-- API key authentication required for sketch endpoint
-- Configurable authorized keys list
-- Input validation and error handling
-
-## Error Handling
-
-The API includes proper error handling for:
-- Unauthorized access attempts
-- Invalid file uploads
-- Processing failures
-- Model loading issues
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+```
+main.py
+shared.py           # WebUI host / port
+sketch_to_art.py    # Generation logic
+```
